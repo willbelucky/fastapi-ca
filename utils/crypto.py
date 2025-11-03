@@ -1,3 +1,4 @@
+from typing import cast
 from passlib.context import CryptContext
 
 class Crypto:
@@ -11,7 +12,9 @@ class Crypto:
         )
 
     def encrypt(self, secret: str) -> str:
-        return self.pwd_context.hash(secret)
+        # passlib의 타입 스텁이 없어서 Any를 반환하므로 명시적 캐스팅
+        return cast(str, self.pwd_context.hash(secret))
 
     def verify(self, secret: str, hash: str) -> bool:
-        return self.pwd_context.verify(secret, hash)
+        # passlib의 타입 스텁이 없어서 Any를 반환하므로 명시적 캐스팅
+        return cast(bool, self.pwd_context.verify(secret, hash))

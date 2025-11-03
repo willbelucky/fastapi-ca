@@ -20,5 +20,13 @@ class IUserRepository(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def update(self, user: User):
+    def get_users(self, page: int, items_per_page: int) -> tuple[int, list[User]]:
+        raise NotImplementedError
+
+    @abstractmethod
+    def update(self, user: User) -> User:
+        raise NotImplementedError
+
+    @abstractmethod
+    def delete(self, id: str) -> None:
         raise NotImplementedError

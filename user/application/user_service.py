@@ -27,9 +27,12 @@ class UserService:
 
         try:
             _user = self.user_repo.find_by_email(email)
-        except Exception as e:
+        except HTTPException as e:
             if e.status_code != 422:
                 raise e
+        except Exception:
+            # HTTPException이 아닌 다른 예외는 그대로 전파
+            raise
 
         if _user:
             raise HTTPException(status_code=422, detail="User already exists")
@@ -65,3 +68,9 @@ class UserService:
         self.user_repo.update(user)
 
         return user
+
+    def get_users(self, page: int, items_per_page: int) -> tuple[int, list[User]]:
+        return self.user_repo.get_users(page, items_per_page)
+
+    def delete_user(self, user_id: str) -> None:
+        self.user_repo.delete(user_id)

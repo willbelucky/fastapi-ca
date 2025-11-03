@@ -14,6 +14,7 @@ poetry add sqlalchemy # 객체 관계 매핑 패키지
 poetry add alembic # SQLAlchemy와 함께 사용되는 데이터베이스 마이그레이션 도구
 poetry add mysqlclient # MySQL과의 연결을 위해 필요
 poetry add dependency-injector # 의존성 주입에 사용
+poetry add --group dev mypy # mypy 사용
 
 poetry run alembic init migrations # Alembic의 초기화를 수행
 poetry run alembic revision --autogenerate -m "add User Table" # 자동으로 리비전 파일을 생성(User 테이블 생성)
