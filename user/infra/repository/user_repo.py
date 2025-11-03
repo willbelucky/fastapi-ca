@@ -1,26 +1,68 @@
+from fastapi import HTTPException
+
 from database import SessionLocal
 from user.domain.repository.user_repo import IUserRepository
-from user.domain.user import User as UserV0 # 클래스명
-from user.infra.db_models.user import User # 데이터베이스 모델
+from user.domain.user import User as UserVO  # 클래스명
+from user.infra.db_models.user import User  # 데이터베이스 모델
+from utils.db_utils import row_to_dict
+
 
 class UserRepository(IUserRepository):
-    def save(self, user: UserV0):
+    def save(self, user: UserVO) -> UserVO:
         new_user = User(
             id=user.id,
             email=user.email,
             name=user.name,
             password=user.password,
+            memo=user.memo,
             created_at=user.created_at,
             updated_at=user.updated_at,
         )
 
         with SessionLocal() as db:
-            try: # try-finally 구문을 사용해 세션이 자동으로 닫히도록 함
-                db = SessionLocal()
+            try:
                 db.add(new_user)
                 db.commit()
-            finally:
-                db.close()
+            except Exception as e:
+                db.rollback()
+                raise e
 
-    def find_by_email(self, email: str) -> User:
-        pass
+        new_user = self.find_by_id(user.id)
+
+        return new_user
+
+    def find_by_email(self, email: str) -> UserVO:
+        with SessionLocal() as db:
+            user = db.query(User).filter(User.email == email).first()
+
+            if not user:
+                raise HTTPException(status_code=422, detail="User not found")
+
+            # 세션이 열려있는 동안 row_to_dict 호출
+            return UserVO(**row_to_dict(user))
+
+    def find_by_id(self, id: str) -> UserVO:
+        with SessionLocal() as db:
+            user = db.query(User).filter(User.id == id).first()
+        
+            if not user:
+                raise HTTPException(status_code=422, detail="User not found")
+
+            # 세션이 열려있는 동안 row_to_dict 호출
+            return UserVO(**row_to_dict(user))
+
+    def update(self, user_vo: UserVO) -> UserVO:
+        with SessionLocal() as db:
+            user = db.query(User).filter(User.id == user_vo.id).first()
+
+            if not user:
+                raise HTTPException(status_code=422, detail="User not found")
+            
+            user.name = user_vo.name
+            user.password = user_vo.password
+
+            db.add(user)
+            db.commit()
+            
+            # 세션이 열려있는 동안 row_to_dict 호출 (DetachedInstanceError 방지)
+            return UserVO(**row_to_dict(user))
