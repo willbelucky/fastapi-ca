@@ -3,7 +3,7 @@
 ```bash
 poetry install
 Invoke-Expression (poetry env activate)
-poetry add fastapi
+poetry add fastapi[all]
 poetry add "uvicorn[standard]" # ASGI(Asynchronous server gateway interface) 서버
 poetry add colorama # 윈도우 사용자의 경우 로그 색상을 표시
 poetry add python-dotenv # --env-file 옵션을 사용
