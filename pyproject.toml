@@ -18,7 +18,10 @@ dependencies = [
     "sqlalchemy (>=2.0.44,<3.0.0)",
     "alembic (>=1.17.1,<2.0.0)",
     "mysqlclient (>=2.2.7,<3.0.0)",
-    "dependency-injector (>=4.48.2,<5.0.0)"
+    "dependency-injector (>=4.48.2,<5.0.0)",
+    "pydantic[email] (>=2.12.3,<3.0.0)",
+    "python-jose[cryptography] (>=3.5.0,<4.0.0)",
+    "python-multipart (>=0.0.20,<0.0.21)"
 ]
 
 

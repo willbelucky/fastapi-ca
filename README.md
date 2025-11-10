@@ -15,6 +15,8 @@ poetry add alembic # SQLAlchemy와 함께 사용되는 데이터베이스 마이
 poetry add mysqlclient # MySQL과의 연결을 위해 필요
 poetry add dependency-injector # 의존성 주입에 사용
 poetry add --group dev mypy # mypy 사용
+poetry add "pydantic[email]" # pydantic 이메일 타입 추가
+poetry add "python-jose[cryptography]" python-multipart # JWT를 다루는 라이브러리와 form-data를 다루기 위한 python-multipart 라이브러리
 
 poetry run alembic init migrations # Alembic의 초기화를 수행
 poetry run alembic revision --autogenerate -m "add User Table" # 자동으로 리비전 파일을 생성(User 테이블 생성)

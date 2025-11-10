@@ -1,17 +1,16 @@
-from ulid import ULID
 from datetime import datetime
-from fastapi import HTTPException
-from utils.crypto import Crypto
 
-from user.domain.user import User
+from fastapi import HTTPException, status
+from ulid import ULID
+
+from common.auth import Role, create_access_token
 from user.domain.repository.user_repo import IUserRepository
+from user.domain.user import User
+from utils.crypto import Crypto
 
 
 class UserService:
-    def __init__(
-        self,
-        user_repo: IUserRepository
-    ):
+    def __init__(self, user_repo: IUserRepository):
         self.user_repo = user_repo
         self.ulid = ULID()
         self.crypto = Crypto()
@@ -45,7 +44,7 @@ class UserService:
             password=self.crypto.encrypt(password),
             memo=memo,
             created_at=now,
-            updated_at=now
+            updated_at=now,
         )
         self.user_repo.save(user)
 
@@ -74,3 +73,16 @@ class UserService:
 
     def delete_user(self, user_id: str) -> None:
         self.user_repo.delete(user_id)
+
+    def login(self, email: str, password: str) -> str:
+        user = self.user_repo.find_by_email(email)
+
+        if not self.crypto.verify(password, user.password):
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
+
+        access_token = create_access_token(
+            payload={"user_id": user.id},
+            role=Role.USER,
+        )
+
+        return access_token

@@ -1,17 +1,31 @@
+from datetime import datetime
+from typing import Annotated
+
+from dependency_injector.wiring import Provide, inject
 from fastapi import APIRouter, Depends
-from pydantic import BaseModel
-from dependency_injector.wiring import inject, Provide
+from fastapi.security import OAuth2PasswordRequestForm
+from pydantic import BaseModel, EmailStr, Field
+
+from common.auth import CurrentUser, get_admin_user, get_current_user
 from containers import Container
-from user.domain.user import User
 from user.application.user_service import UserService
+from user.domain.user import User
 
 router = APIRouter(prefix="/users")
 
 
 class CreateUserBody(BaseModel):
+    name: str = Field(min_length=2, max_length=32)
+    email: EmailStr = Field(max_length=64)
+    password: str = Field(min_length=8, max_length=32)
+
+
+class UserResponse(BaseModel):
+    id: str
     name: str
     email: str
-    password: str
+    created_at: datetime
+    updated_at: datetime
 
 
 @router.post("", status_code=201)
@@ -19,7 +33,7 @@ class CreateUserBody(BaseModel):
 def create_user(
     user: CreateUserBody,
     user_service: UserService = Depends(Provide[Container.user_service]),
-):
+) -> UserResponse:
     created_user: User = user_service.create_user(
         name=user.name,
         email=user.email,
@@ -28,32 +42,42 @@ def create_user(
 
     return created_user
 
-class UpdateUser(BaseModel):
-    name: str | None = None
-    password: str | None = None
 
-@router.put("/{user_id}")
+class UpdateUserBody(BaseModel):
+    name: str | None = Field(min_length=2, max_length=32, default=None)
+    password: str | None = Field(min_length=8, max_length=32, default=None)
+
+
+@router.put("")
 @inject
 def update_user(
-    user_id: str,
-    update_data: UpdateUser,
+    current_user: Annotated[CurrentUser, Depends(get_current_user)],
+    body: UpdateUserBody,
     user_service: UserService = Depends(Provide[Container.user_service]),
 ):
     updated_user: User = user_service.update_user(
-        user_id=user_id,
-        name=update_data.name,
-        password=update_data.password,
+        user_id=current_user.id,
+        name=body.name,
+        password=body.password,
     )
 
     return updated_user
+
+
+class GetUsersResponse(BaseModel):
+    total_count: int
+    page: int
+    users: list[UserResponse]
+
 
 @router.get("")
 @inject
 def get_users(
     page: int = 1,
     items_per_page: int = 10,
+    current_user: CurrentUser = Depends(get_admin_user),
     user_service: UserService = Depends(Provide[Container.user_service]),
-):
+) -> GetUsersResponse:
     # 튜플 언패킹 시 타입 명시 방법 1: 개별 변수에 타입 힌트
     total_count: int
     users: list[User]
@@ -65,12 +89,29 @@ def get_users(
         "users": users,
     }
 
+
 @router.delete("", status_code=204)
 @inject
 def delete_user(
-    user_id: str,
+    current_user: Annotated[CurrentUser, Depends(get_current_user)],
     user_service: UserService = Depends(Provide[Container.user_service]),
 ):
-    user_service.delete_user(user_id)
+    user_service.delete_user(current_user.id)
 
     return None
+
+
+@router.post("/login")
+@inject
+def login(
+    form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
+    user_service: UserService = Depends(Provide[Container.user_service]),
+):
+    print("login")
+    print(form_data)
+    access_token: str = user_service.login(
+        email=form_data.username,
+        password=form_data.password,
+    )
+
+    return {"access_token": access_token, "token_type": "bearer"}

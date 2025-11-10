@@ -3,6 +3,7 @@ from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
 from fastapi.requests import Request
 from fastapi.responses import JSONResponse
+
 from containers import Container
 from user.interface.controllers.user_controller import router as user_router
 
