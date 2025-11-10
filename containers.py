@@ -1,7 +1,7 @@
 from dependency_injector import containers, providers
 
-from user.infra.repository.user_repo import UserRepository
 from user.application.user_service import UserService
+from user.infra.repository.user_repo import UserRepository
 
 
 class Container(containers.DeclarativeContainer):

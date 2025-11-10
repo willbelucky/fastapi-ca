@@ -1,5 +1,7 @@
-from fastapi import HTTPException
 from datetime import datetime
+
+from fastapi import HTTPException
+
 from database import SessionLocal
 from user.domain.repository.user_repo import IUserRepository
 from user.domain.user import User as UserVO  # 클래스명
@@ -45,7 +47,7 @@ class UserRepository(IUserRepository):
     def find_by_id(self, id: str) -> UserVO:
         with SessionLocal() as db:
             user = db.query(User).filter(User.id == id).first()
-        
+
             if not user:
                 raise HTTPException(status_code=422, detail="User not found")
 
@@ -56,7 +58,7 @@ class UserRepository(IUserRepository):
         with SessionLocal() as db:
             # 전체 개수 조회
             total_count = db.query(User).count()
-            
+
             # 페이징된 사용자 목록 조회
             offset = (page - 1) * items_per_page
             users = db.query(User).offset(offset).limit(items_per_page).all()
@@ -72,14 +74,14 @@ class UserRepository(IUserRepository):
 
             if not user:
                 raise HTTPException(status_code=422, detail="User not found")
-            
+
             user.name = user_vo.name
             user.password = user_vo.password
             user.updated_at = datetime.now()
 
             db.add(user)
             db.commit()
-            
+
             # 세션이 열려있는 동안 row_to_dict 호출 (DetachedInstanceError 방지)
             return UserVO(**row_to_dict(user))
 

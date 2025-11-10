@@ -1,7 +1,10 @@
 from datetime import datetime
-from sqlalchemy import String, DateTime, Text
+
+from sqlalchemy import DateTime, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
+
 from database import Base
+
 
 class User(Base):
     __tablename__ = "User"
