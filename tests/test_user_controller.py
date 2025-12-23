@@ -1,4 +1,4 @@
-def test_create_user_success(client, mock_email_service):
+def test_create_user_success(client, mock_send_welcome_email_task):
     """유저 생성 성공 테스트"""
     user_data = {
         "name": "테스트유저",
@@ -19,11 +19,11 @@ def test_create_user_success(client, mock_email_service):
     # password는 응답에 포함되지 않아야 함
     assert "password" not in data
 
-    # 이메일 서비스가 호출되었는지 확인
-    mock_email_service.assert_called_once()
+    # Celery 이메일 태스크가 호출되었는지 확인
+    mock_send_welcome_email_task.assert_called_once_with(user_data["email"])
 
 
-def test_create_user_duplicate_email(client, mock_email_service):
+def test_create_user_duplicate_email(client, mock_send_welcome_email_task):
     """중복 이메일로 유저 생성 시도 테스트"""
     user_data = {
         "name": "테스트유저",
@@ -46,7 +46,7 @@ def test_create_user_duplicate_email(client, mock_email_service):
     )
 
 
-def test_create_user_invalid_name_too_short(client, mock_email_service):
+def test_create_user_invalid_name_too_short(client, mock_send_welcome_email_task):
     """이름이 너무 짧은 경우 테스트"""
     user_data = {
         "name": "A",  # 최소 2자
@@ -59,7 +59,7 @@ def test_create_user_invalid_name_too_short(client, mock_email_service):
     assert response.status_code == 400  # Validation error
 
 
-def test_create_user_invalid_name_too_long(client, mock_email_service):
+def test_create_user_invalid_name_too_long(client, mock_send_welcome_email_task):
     """이름이 너무 긴 경우 테스트"""
     user_data = {
         "name": "A" * 33,  # 최대 32자
@@ -72,7 +72,7 @@ def test_create_user_invalid_name_too_long(client, mock_email_service):
     assert response.status_code == 400  # Validation error
 
 
-def test_create_user_invalid_password_too_short(client, mock_email_service):
+def test_create_user_invalid_password_too_short(client, mock_send_welcome_email_task):
     """비밀번호가 너무 짧은 경우 테스트"""
     user_data = {
         "name": "테스트유저",
@@ -85,7 +85,7 @@ def test_create_user_invalid_password_too_short(client, mock_email_service):
     assert response.status_code == 400  # Validation error
 
 
-def test_create_user_invalid_email(client, mock_email_service):
+def test_create_user_invalid_email(client, mock_send_welcome_email_task):
     """잘못된 이메일 형식 테스트"""
     user_data = {
         "name": "테스트유저",
@@ -98,7 +98,7 @@ def test_create_user_invalid_email(client, mock_email_service):
     assert response.status_code == 400  # Validation error
 
 
-def test_create_user_missing_fields(client, mock_email_service):
+def test_create_user_missing_fields(client, mock_send_welcome_email_task):
     """필수 필드 누락 테스트"""
     user_data = {
         "name": "테스트유저",

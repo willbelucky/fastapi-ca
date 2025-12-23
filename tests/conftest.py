@@ -53,10 +53,13 @@ def client(test_db, monkeypatch):
 
 
 @pytest.fixture
-def mock_email_service():
-    """이메일 서비스 모킹"""
-    with patch("user.application.email_service.EmailService.send_email") as mock:
-        yield mock
+def mock_send_welcome_email_task():
+    """Celery 이메일 태스크 모킹"""
+    # user_service에서 SendWelcomeEmailTask().run()을 호출하므로 해당 경로를 모킹
+    with patch("user.application.user_service.SendWelcomeEmailTask") as mock_task_class:
+        mock_instance = mock_task_class.return_value
+        mock_run = mock_instance.run
+        yield mock_run
 
 
 @pytest.fixture(autouse=True)

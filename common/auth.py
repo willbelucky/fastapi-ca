@@ -15,8 +15,8 @@ ALGORITHM = "HS256"
 
 
 class Role(StrEnum):
-    ADMIN = "admin"
-    USER = "user"
+    ADMIN = "ADMIN"
+    USER = "USER"
 
 
 def create_access_token(
@@ -53,6 +53,9 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/users/login")
 class CurrentUser:
     id: str
     role: Role
+
+    def __str__(self) -> str:
+        return f"{self.id}({self.role})"
 
 
 def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]) -> CurrentUser:
